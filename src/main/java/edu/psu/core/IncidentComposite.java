@@ -13,7 +13,7 @@ public class IncidentComposite implements TicketComponentIF {
     public List<TicketComponentIF> getChildren() {return null;}
 
     @Override
-    public String getTitle() {return "";}
+    public String getTitle() {return incidentTitle;}
 
     @Override
     public String getDescription() {return "";}
