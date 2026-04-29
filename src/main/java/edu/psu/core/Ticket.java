@@ -5,7 +5,7 @@ import edu.psu.behavior.TicketStateIF;
 import java.time.Instant;
 import java.util.UUID;
 
-public class Ticket {
+public class Ticket implements TicketComponentIF {
     // fields
     private UUID ticketID;
     private Instant createdAt;
@@ -21,6 +21,11 @@ public class Ticket {
     // unimplemented methods
     public void processEvent(int event) {};
     public String displayDetails() {return null;}
+
+    @Override
+    public void boostPriority() {
+        priority += 1;
+    }
 
     // setters
     public void setState(TicketStateIF state) {status = state;}

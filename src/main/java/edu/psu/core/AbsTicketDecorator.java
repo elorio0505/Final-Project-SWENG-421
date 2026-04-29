@@ -6,12 +6,18 @@ public abstract class AbsTicketDecorator implements TicketComponentIF {
     public AbsTicketDecorator(TicketComponentIF c) {}
 
     @Override
-    public String getTitle() {return "";}
+    public String getTitle() {
+        return decoratedComponent.getTitle();
+    }
 
     @Override
-    public String getDescription() {return "";}
+    public String getDescription() {
+        return decoratedComponent.getDescription();
+    }
 
     @Override
-    public String displayDetails() {return "";}
+    public String displayDetails() {
+        return decoratedComponent.displayDetails();
+    }
 
 }
