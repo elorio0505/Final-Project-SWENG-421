@@ -2,6 +2,9 @@ package edu.psu.core;
 
 import edu.psu.behavior.TicketStateIF;
 
+import java.time.Instant;
+import java.util.UUID;
+
 public abstract class AbsTicketDecorator implements TicketComponentIF {
     protected TicketComponentIF decoratedComponent;
 
@@ -12,39 +15,20 @@ public abstract class AbsTicketDecorator implements TicketComponentIF {
     }
 
     // Methods
-    @Override
-    public String displayDetails() {
-        return decoratedComponent.displayDetails();
-    }
-
-    @Override
-    public void processEvent(int event) {
-        decoratedComponent.processEvent(event);
-    }
+    public String displayDetails() {return decoratedComponent.displayDetails();}
+    public void processEvent(int event) {decoratedComponent.processEvent(event);}
 
     // Setters
-    @Override
-    public void setState(TicketStateIF state) {
-        decoratedComponent.setState(state);
-    }
-
-    @Override
-    public void setPriority(int priority) {
-        decoratedComponent.setPriority(priority);
-    }
+    public void setState(TicketStateIF state) {decoratedComponent.setState(state);}
+    public void setPriority(int priority) {decoratedComponent.setPriority(priority);}
+    public void setAssignee(String assignee) {decoratedComponent.setAssignee(assignee);}
 
     // Getters
-    @Override
-    public String getTitle() {
-        return decoratedComponent.getTitle();
-    }
-
-    @Override
-    public String getDescription() {
-        return decoratedComponent.getDescription();
-    }
-    @Override
-    public int getPriority() {
-        return decoratedComponent.getPriority();
-    }
+    public String getTitle() {return decoratedComponent.getTitle();}
+    public String getDescription() {return decoratedComponent.getDescription();}
+    public int getPriority() {return decoratedComponent.getPriority();}
+    public Instant getCreatedAt() {return decoratedComponent.getCreatedAt();}
+    public TicketStateIF getState() {return decoratedComponent.getState();}
+    public UUID getTicketID() {return decoratedComponent.getTicketID();}
+    public String getAssignee() {return decoratedComponent.getAssignee();}
 }

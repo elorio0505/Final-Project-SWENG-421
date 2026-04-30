@@ -2,8 +2,10 @@ package edu.psu.core;
 
 import edu.psu.behavior.TicketStateIF;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class IncidentComposite implements TicketComponentIF {
     private final List<TicketComponentIF> children = new ArrayList<>();
@@ -61,26 +63,20 @@ public class IncidentComposite implements TicketComponentIF {
         }
     }
 
-    // Getters
-    /**
-     * Since individual tickets in an incident may all have different priorities, this returns -1 to represent invalid
-     * @return -1
-     */
-    @Override
+    // Getters -- Many of these return invalid indicators because it's hard to get these values from an incident
     public int getPriority() {
         return -1;
     }
-
+    public Instant getCreatedAt() {return null;}
+    public TicketStateIF getState() {return null;}
+    public UUID getTicketID() {return null;}
+    public String getAssignee() {return "";}
     public List<TicketComponentIF> getChildren() {
         return children;
     }
-
-    @Override
     public String getTitle() {
         return incidentTitle;
     }
-
-    @Override
     public String getDescription() {
         return incidentDescription;
     }
@@ -94,6 +90,16 @@ public class IncidentComposite implements TicketComponentIF {
     public void setPriority(int priority) {
         for (TicketComponentIF c : children) {
             c.setPriority(priority);
+        }
+    }
+
+    /**
+     * Sets all of this incident's children to the same assignee
+     * @param assignee Assignee to assign
+     */
+    public void setAssignee(String assignee) {
+        for (TicketComponentIF c : children) {
+            c.setAssignee(assignee);
         }
     }
 
