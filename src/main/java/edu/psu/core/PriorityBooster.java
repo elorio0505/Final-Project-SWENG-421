@@ -1,11 +1,17 @@
 package edu.psu.core;
 
-// TODO: increment priority of component when boost() called
+// TODO: Maybe more "levels" of priority boosting? This is pretty barebones as it stands.
 
 public class PriorityBooster extends AbsTicketDecorator {
+
     public PriorityBooster(TicketComponentIF c) {
         super(c);
     }
 
-    public void boost() {}
+    /**
+     * Boosts the priority of wrapped component by 1
+     */
+    public void boost() {
+        setPriority(getPriority() + 1);
+    }
 }

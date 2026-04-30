@@ -1,5 +1,5 @@
 package edu.psu.behavior;
-
+// TODO: Please implement a toString method for the sake of printing, thank you
 public interface TicketStateIF {
     public final int ASSIGN_EVT = 1;
     public final int ACTIVATE_EVT = 2;
