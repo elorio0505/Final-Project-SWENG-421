@@ -1,38 +1,20 @@
 package edu.psu.behavior;
+import edu.psu.core.TicketComponentIF;
 
-public class ResolvedState implements TicketStateIF {
-    @Override
-    public void updateTicketStatus() {
-
+public class ResolvedState extends AbsTicketState {
+        @Override
+    public void updateTicketStatus(TicketComponentIF context) {
+        System.out.println("Ticket" + context.getTicketID() + "is resolved");
     }
 
     @Override
-    public boolean validateTransition() {
-        return false;
-    }
-
-    @Override
-    public void enter() {
-
-    }
-
-    @Override
-    public void exit() {
-
-    }
-
-    @Override
-    public TicketStateIF nextState() {
+    protected AbsTicketState nextState(int event) {
+        if (event == CLOSE_EVT) return closedState;
+        if (event == REOPEN_EVT) return activeState;
         return null;
     }
-
     @Override
-    public TicketStateIF start() {
-        return null;
-    }
-
-    @Override
-    public TicketStateIF processEvent(int event) {
-        return null;
+    public String toString() {
+        return "Resolved State";
     }
 }

@@ -1,38 +1,19 @@
 package edu.psu.behavior;
+import edu.psu.core.TicketComponentIF;
 
-public class PendingState implements TicketStateIF {
+public class PendingState extends AbsTicketState {
     @Override
-    public void updateTicketStatus() {
-
+    public void updateTicketStatus(TicketComponentIF context) {
+        System.out.println("Ticket" + context.getTicketID() + " is pending");
     }
 
     @Override
-    public boolean validateTransition() {
-        return false;
-    }
-
-    @Override
-    public void enter() {
-
-    }
-
-    @Override
-    public void exit() {
-
-    }
-
-    @Override
-    public TicketStateIF nextState() {
+    protected AbsTicketState nextState(int event) {
+        if (event == ACTIVATE_EVT) return activeState;
         return null;
     }
-
     @Override
-    public TicketStateIF start() {
-        return null;
-    }
-
-    @Override
-    public TicketStateIF processEvent(int event) {
-        return null;
+    public String toString() {
+        return "Pending State";
     }
 }
