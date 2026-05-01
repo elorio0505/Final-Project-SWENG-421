@@ -1,36 +1,51 @@
 package edu.psu.processing;
 
 import edu.psu.core.*;
-import java.util.LinkedList;
-import java.util.Queue;
+
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public class TicketScheduler {
-    private final Queue<TicketComponentIF> ticketQueue = new LinkedList<>();
-    private boolean busy = false;
+    private final PriorityQueue<TicketComponentIF> ticketQueue = new PriorityQueue<>(
+            Comparator.comparing(TicketScheduler::getTicketCreatedAt)
+    );
 
     public TicketScheduler() {}
 
     /**
-     * Submit ticket into scheduler.
+     * Submit ticket into scheduler in timestamp order.
      */
-    public synchronized void submit(TicketComponentIF c) throws InterruptedException {
-        ticketQueue.add(c);
-        while (busy || ticketQueue.peek() != c) {
-            wait();
+    public synchronized void submit(TicketComponentIF c) {
+        if (c == null) {
+            throw new IllegalArgumentException("Cannot submit a null ticket.");
         }
-        busy = true;
+
+        ticketQueue.add(c);
+        notifyAll();
     }
 
     /**
-     * Called by the running thread when done.
+     * Dispatches the oldest submitted ticket.
      */
     public synchronized TicketComponentIF dispatchNext() {
         if (ticketQueue.isEmpty()) {
-            throw new IllegalStateException("No ticket is currently running");
+            throw new IllegalStateException("No tickets are waiting to be dispatched.");
         }
-        TicketComponentIF finished = ticketQueue.remove();
-        busy = false;
-        notifyAll();
-        return finished;
+
+        return ticketQueue.remove();
+    }
+
+    public synchronized int getPendingCount() {
+        return ticketQueue.size();
+    }
+
+    public synchronized boolean hasPendingTickets() {
+        return !ticketQueue.isEmpty();
+    }
+
+    private static Instant getTicketCreatedAt(TicketComponentIF ticket) {
+        Instant createdAt = ticket.getCreatedAt();
+        return createdAt == null ? Instant.MAX : createdAt;
     }
 }
