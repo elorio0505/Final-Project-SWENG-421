@@ -31,14 +31,14 @@ public class HardwareTicket extends Ticket {
         super(id, title, description, priority, createdAt);
     }
 
-    // ── Hardware setters ──────────────────────────────────────────────────────
+    // Setters
     public void setDeviceSerialNumber(String s)  { this.deviceSerialNumber = s == null ? "N/A" : s; }
     public void setDeviceMakeModel(String s)     { this.deviceMakeModel    = s == null ? "N/A" : s; }
     public void setOfficeLocation(String s)      { this.officeLocation     = s == null ? "N/A" : s; }
     public void setFailureType(String s)         { this.failureType        = s == null ? "N/A" : s; }
     public void setUnderWarranty(boolean w)      { this.underWarranty = w; }
 
-    // ── Hardware getters ──────────────────────────────────────────────────────
+    // Getters
     public String getDeviceSerialNumber() { return deviceSerialNumber; }
     public String getDeviceMakeModel()    { return deviceMakeModel; }
     public String getOfficeLocation()     { return officeLocation; }

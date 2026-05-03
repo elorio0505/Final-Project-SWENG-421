@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------
+# Sample Email Ticket — Hardware
+# Parsed by: EmailSource → HardwareTicketBuilder
+#
+# Format: Key: Value  (one field per line)
+# Lines starting with # are comments and are ignored.
+# ---------------------------------------------------------------
+
+type:        Hardware
+title:       Workstation Will Not Boot After Power Surge
+description: A workstation in the finance department failed to boot following a power surge yesterday evening. The machine powers on but does not POST — no display output and the fans spin at full speed continuously. Suspected PSU or motherboard damage.
+priority:    8
+
+# Hardware-specific fields
+serial:      SN-FIN-00472
+make_model:  Dell OptiPlex 7090
+location:    Building A, Room 112 - Finance
+failure:     No POST after power surge, suspected PSU or motherboard failure
+warranty:    true

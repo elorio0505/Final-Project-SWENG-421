@@ -6,30 +6,35 @@ import edu.psu.processing.*;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
 /**
  * Main GUI for the Incident Management System.
  * Layout:
- *   Top : ticket creation + flood test
- *   Left : incident/ticket hierarchy
- *   Middle : Ticket info
- *   Right : Features
+ *   Top    : ticket creation (manual) + Import from File + flood test
+ *   Left   : incident/ticket hierarchy tree
+ *   Center : ticket detail view + action buttons
+ *   Right  : feature decorator controls + feature info
  */
 public class TicketGUI extends JFrame {
 
-    private final SoftwareTicketBuilder  swBuilder  = new SoftwareTicketBuilder();
-    private final HardwareTicketBuilder  hwBuilder  = new HardwareTicketBuilder();
-    private final TicketScheduler        scheduler  = new TicketScheduler();
+    private final SoftwareTicketBuilder swBuilder = new SoftwareTicketBuilder();
+    private final HardwareTicketBuilder hwBuilder = new HardwareTicketBuilder();
+    private final TicketScheduler       scheduler = new TicketScheduler();
 
-    private JTextField titleField;
-    private JTextArea  descField;
-    private JTextField priorityField;
+    // top
+    private JTextField    titleField;
+    private JTextArea     descField;
+    private JTextField    priorityField;
     private JComboBox<String> typeCombo;
 
+    // Hardware creation fields
     private JPanel     hwFieldsPanel;
     private JTextField hwSerialField;
     private JTextField hwMakeModelField;
@@ -37,10 +42,12 @@ public class TicketGUI extends JFrame {
     private JTextField hwFailureTypeField;
     private JCheckBox  hwWarrantyCheck;
 
-    private JTree     incidentTree;
-    private DefaultTreeModel treeModel;
+    //left
+    private JTree                  incidentTree;
+    private DefaultTreeModel       treeModel;
     private DefaultMutableTreeNode treeRoot;
 
+    //middle
     private JTextArea detailArea;
 
     private JButton assignBtn;
@@ -52,6 +59,7 @@ public class TicketGUI extends JFrame {
     private JButton requestBtn;
     private JButton manageIncidentBtn;
 
+    //right
     private JCheckBox auditCheck;
     private JCheckBox slaCheck;
     private JCheckBox boostCheck;
@@ -61,7 +69,8 @@ public class TicketGUI extends JFrame {
     private JButton toggleBoostBtn;
 
     private JTextArea decoratorInfoArea;
-
+    
+    //Constructor
     public TicketGUI() {
         IncidentRegistry.syncStorage();
 
@@ -80,24 +89,27 @@ public class TicketGUI extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    // Panels
     private JPanel buildTopPanel() {
         JPanel outer = new JPanel(new BorderLayout(4, 4));
-        outer.setBorder(BorderFactory.createTitledBorder("Manual Ticket Creation"));
+        outer.setBorder(BorderFactory.createTitledBorder("Ticket Creation"));
 
         JPanel commonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+
         typeCombo     = new JComboBox<>(new String[]{"Software", "Hardware"});
         titleField    = new JTextField(12);
         descField     = new JTextArea(2, 20);
         descField.setLineWrap(true);
         priorityField = new JTextField(3);
 
-        JButton createBtn = new JButton("Create Ticket");
-        JButton floodBtn  = new JButton("Run Flood Test");
-        createBtn.addActionListener(e -> handleManualCreation());
-        floodBtn .addActionListener(e -> runFloodTest());
+        JButton createBtn     = new JButton("Create Ticket");
+        JButton importFileBtn = new JButton("Import from File (.eml / .html)");
+        JButton floodBtn      = new JButton("Run Flood Test");
 
-        //Show/hide hardware fields when type changes
+        createBtn    .addActionListener(e -> handleManualCreation());
+        importFileBtn.addActionListener(e -> handleImportFromFile());
+        floodBtn     .addActionListener(e -> runFloodTest());
+
+        // Show/hide hardware fields
         typeCombo.addActionListener(e -> {
             boolean hw = "Hardware".equals(typeCombo.getSelectedItem());
             hwFieldsPanel.setVisible(hw);
@@ -114,12 +126,14 @@ public class TicketGUI extends JFrame {
         commonRow.add(new JLabel("Priority:"));
         commonRow.add(priorityField);
         commonRow.add(createBtn);
+        commonRow.add(importFileBtn);
         commonRow.add(new JSeparator(SwingConstants.VERTICAL));
         commonRow.add(floodBtn);
 
-        //hardware modifier section
+        // hardware fields
         hwFieldsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         hwFieldsPanel.setBorder(BorderFactory.createTitledBorder("Hardware Details"));
+
         hwSerialField      = new JTextField(10);
         hwMakeModelField   = new JTextField(12);
         hwLocationField    = new JTextField(10);
@@ -137,7 +151,7 @@ public class TicketGUI extends JFrame {
         hwFieldsPanel.add(hwWarrantyCheck);
         hwFieldsPanel.setVisible(false); // hidden by default (Software selected)
 
-        outer.add(commonRow,    BorderLayout.NORTH);
+        outer.add(commonRow,     BorderLayout.NORTH);
         outer.add(hwFieldsPanel, BorderLayout.SOUTH);
         return outer;
     }
@@ -211,7 +225,6 @@ public class TicketGUI extends JFrame {
         checkPanel.add(slaCheck);
         checkPanel.add(boostCheck);
 
-        // ── Post-creation toggles ─────────────────────────────────────────────
         JPanel togglePanel = new JPanel(new GridLayout(3, 1, 4, 4));
         togglePanel.setBorder(BorderFactory.createTitledBorder("Toggle on Selected Ticket"));
         toggleAuditBtn = new JButton("Toggle Audit Log");
@@ -224,7 +237,6 @@ public class TicketGUI extends JFrame {
         togglePanel.add(toggleSlaBtn);
         togglePanel.add(toggleBoostBtn);
 
-        // ── Feature info read-out ─────────────────────────────────────────────
         decoratorInfoArea = new JTextArea();
         decoratorInfoArea.setEditable(false);
         decoratorInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -241,6 +253,7 @@ public class TicketGUI extends JFrame {
         return panel;
     }
 
+    // State buttons
     private void onSelectionChanged() {
         Object selected = getSelectedObject();
         updateButtonStates(selected);
@@ -282,11 +295,9 @@ public class TicketGUI extends JFrame {
     }
 
     private boolean isLegalTransition(AbsTicketState state, int event) {
-        if (state == null) return false;
-        return state.validateTransition(event);
+        return state != null && state.validateTransition(event);
     }
 
-    /** Reflect the current decorator state in the toggle button labels. */
     private void updateToggleButtonLabels(Object selected) {
         if (!(selected instanceof TicketComponentIF t)
                 || selected instanceof IncidentComposite) {
@@ -304,7 +315,9 @@ public class TicketGUI extends JFrame {
         toggleBoostBtn.setText((hasBoost ? "ON " : "OFF ") + ": Priority Boost");
     }
 
-    //Actions
+    // Action handlers
+    
+    // manual
     private void handleManualCreation() {
         String title = titleField.getText().trim();
         String desc  = descField.getText().trim();
@@ -312,6 +325,7 @@ public class TicketGUI extends JFrame {
 
         if (title.isEmpty()) { showError("Title cannot be empty."); return; }
         if (desc.isEmpty())  { showError("Description cannot be empty."); return; }
+
         int priority;
         try {
             priority = Integer.parseInt(prStr);
@@ -321,35 +335,102 @@ public class TicketGUI extends JFrame {
             return;
         }
 
+        TicketComponentIF ticket = buildTicket(priority);
+        applyCreationDecorators(ticket);
+
+        titleField.setText("");
+        descField.setText("");
+        priorityField.setText("");
+        clearHardwareFields();
+
+        refreshTree();
+        selectTicketInTree(ticket);
+    }
+
+    //file import, email/webform (.eml/.html)
+    private void handleImportFromFile() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Import Ticket — select a .eml or .html file");
+        chooser.setFileFilter(
+            new FileNameExtensionFilter("Ticket source files (*.eml, *.html)", "eml", "html", "htm"));
+
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File selectedFile = chooser.getSelectedFile();
+        String fileName   = selectedFile.getName().toLowerCase();
+
+        try {
+            String rawContent = java.nio.file.Files.readString(selectedFile.toPath());
+            boolean isHardware = rawContent.lines()
+                .map(String::trim)
+                .filter(l -> l.toLowerCase().startsWith("type:"))
+                .map(l -> l.substring(l.indexOf(':') + 1).trim())
+                .anyMatch(v -> v.equalsIgnoreCase("Hardware"));
+
+            AbsTicketBuilder builder = isHardware ? hwBuilder : swBuilder;
+            builder.reset();
+
+            String sourceLabel;
+
+            if (fileName.endsWith(".eml")) {
+                new EmailSource().loadFromFile(selectedFile.toPath(), builder);
+                sourceLabel = "Email";
+            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                new WebFormSource().loadFromFile(selectedFile.toPath(), builder);
+                sourceLabel = "Web Form";
+            } else {
+                showError("Unsupported file type.\nPlease select a .eml or .html file.");
+                return;
+            }
+
+            TicketComponentIF ticket = builder.getProduct();
+            applyCreationDecorators(ticket);
+
+            refreshTree();
+            selectTicketInTree(ticket);
+
+            JOptionPane.showMessageDialog(this,
+                "Ticket imported successfully from: " + selectedFile.getName()
+                + "\n\nType:     " + (isHardware ? "Hardware" : "Software")
+                + "\nTitle:    " + ticket.getTitle()
+                + "\nPriority: " + ticket.getPriority()
+                + "\nSource:   " + sourceLabel,
+                "Import Successful", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (IOException ex) {
+            showError("Could not read the file:\n" + ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            showError("Parsing failed — the file may be missing required fields.\n\n"
+                + ex.getMessage()
+                + "\n\nRequired fields:  type, title, description, priority"
+                + "\nHardware also needs:  serial, make_model, location, failure, warranty");
+        }
+    }
+
+    // Builder
+    private TicketComponentIF buildTicket(int priority) {
         boolean isHardware = "Hardware".equals(typeCombo.getSelectedItem());
-        TicketComponentIF ticket;
 
         if (isHardware) {
             hwBuilder.reset();
-            hwBuilder.setBasics(title, desc);
+            hwBuilder.setBasics(titleField.getText().trim(), descField.getText().trim());
             hwBuilder.setMetaData("Hardware", priority);
             hwBuilder.setHardwareDetails(
                 hwSerialField.getText().trim(),
                 hwMakeModelField.getText().trim(),
                 hwLocationField.getText().trim(),
                 hwFailureTypeField.getText().trim(),
-                hwWarrantyCheck.isSelected()
-            );
-            ticket = hwBuilder.getProduct();
-            // Clear hardware fields
-            hwSerialField.setText("");
-            hwMakeModelField.setText("");
-            hwLocationField.setText("");
-            hwFailureTypeField.setText("");
-            hwWarrantyCheck.setSelected(false);
+                hwWarrantyCheck.isSelected());
+            return hwBuilder.getProduct();
         } else {
             swBuilder.reset();
-            swBuilder.setBasics(title, desc);
+            swBuilder.setBasics(titleField.getText().trim(), descField.getText().trim());
             swBuilder.setMetaData("Software", priority);
-            ticket = swBuilder.getProduct();
+            return swBuilder.getProduct();
         }
+    }
 
-        // Apply creation-time decorators
+    private void applyCreationDecorators(TicketComponentIF ticket) {
         if (auditCheck.isSelected()) {
             ticket = new AuditLogger(ticket);
             ticket.addLog("AuditLogger applied at creation");
@@ -364,26 +445,26 @@ public class TicketGUI extends JFrame {
             ticket = pb;
             ticket.addLog("PriorityBooster applied: priority now " + ticket.getPriority());
         }
-
-        titleField.setText("");
-        descField.setText("");
-        priorityField.setText("");
-        refreshTree();
-        selectTicketInTree(ticket);
     }
 
-    //feature toggler
+    private void clearHardwareFields() {
+        hwSerialField.setText("");
+        hwMakeModelField.setText("");
+        hwLocationField.setText("");
+        hwFailureTypeField.setText("");
+        hwWarrantyCheck.setSelected(false);
+    }
+
+    // Feature toggle
     private void handleToggleDecorator(String type) {
         TicketComponentIF ticket = getSelectedTicket();
         if (ticket == null) return;
 
-        boolean hasIt;
         TicketComponentIF updated;
 
         switch (type) {
             case "audit" -> {
-                hasIt = hasDecorator(ticket, AuditLogger.class);
-                if (hasIt) {
+                if (hasDecorator(ticket, AuditLogger.class)) {
                     updated = removeDecorator(ticket, AuditLogger.class);
                     updated.addLog("AuditLogger removed");
                 } else {
@@ -392,8 +473,7 @@ public class TicketGUI extends JFrame {
                 }
             }
             case "sla" -> {
-                hasIt = hasDecorator(ticket, SLAMonitor.class);
-                if (hasIt) {
+                if (hasDecorator(ticket, SLAMonitor.class)) {
                     updated = removeDecorator(ticket, SLAMonitor.class);
                     updated.addLog("SLAMonitor removed");
                 } else {
@@ -402,8 +482,7 @@ public class TicketGUI extends JFrame {
                 }
             }
             case "boost" -> {
-                hasIt = hasDecorator(ticket, PriorityBooster.class);
-                if (hasIt) {
+                if (hasDecorator(ticket, PriorityBooster.class)) {
                     updated = removeDecorator(ticket, PriorityBooster.class);
                     updated.addLog("PriorityBooster removed");
                 } else {
@@ -420,7 +499,7 @@ public class TicketGUI extends JFrame {
         refreshAndReselect(updated);
     }
 
-    //State handler
+    // State
     private void handleAssign() {
         TicketComponentIF ticket = getSelectedTicket();
         if (ticket == null) return;
@@ -431,9 +510,8 @@ public class TicketGUI extends JFrame {
         form.add(new JLabel("Department:")); form.add(deptField);
         form.add(new JLabel("Technician:")); form.add(techField);
 
-        int result = JOptionPane.showConfirmDialog(this, form, "Assign Ticket",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (result != JOptionPane.OK_OPTION) return;
+        if (JOptionPane.showConfirmDialog(this, form, "Assign Ticket",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
 
         String dept = deptField.getText().trim();
         String tech = techField.getText().trim();
@@ -443,7 +521,7 @@ public class TicketGUI extends JFrame {
         }
 
         ticket.setAssignee(tech);
-        if (ticket instanceof Ticket) ((Ticket) ticket).setDepartment(dept);
+        if (ticket instanceof Ticket t) t.setDepartment(dept);
         ticket.addLog("Assigned to " + tech + " (Dept: " + dept + ")");
         ticket.processEvent(AbsTicketState.ASSIGN_EVT);
         refreshAndReselect(ticket);
@@ -452,6 +530,8 @@ public class TicketGUI extends JFrame {
     private void handleSetActive()   { applyEvent(AbsTicketState.ACTIVATE_EVT, "Set to Active"); }
     private void handleResolve()     { applyEvent(AbsTicketState.RESOLVE_EVT,  "Marked as Resolved"); }
     private void handleClose()       { applyEvent(AbsTicketState.CLOSE_EVT,    "Ticket Closed"); }
+    private void handleRequestInfo() { applyEvent(AbsTicketState.PENDING_EVT,  "Info requested — ticket set to Pending"); }
+
     private void handleEscalate() {
         TicketComponentIF ticket = getSelectedTicket();
         if (ticket == null) return;
@@ -461,7 +541,6 @@ public class TicketGUI extends JFrame {
         ticket.processEvent(AbsTicketState.ESCALATE_EVT);
         refreshAndReselect(ticket);
     }
-    private void handleRequestInfo() { applyEvent(AbsTicketState.PENDING_EVT, "Info requested — ticket set to Pending"); }
 
     private void handleReopen() {
         TicketComponentIF ticket = getSelectedTicket();
@@ -495,48 +574,47 @@ public class TicketGUI extends JFrame {
 
         if (choice == 0) {
             if (allIncidents.isEmpty()) { showError("No incidents exist. Create one first."); return; }
-            IncidentComposite[] incArray = allIncidents.toArray(new IncidentComposite[0]);
+            IncidentComposite[] arr = allIncidents.toArray(new IncidentComposite[0]);
             IncidentComposite target = (IncidentComposite) JOptionPane.showInputDialog(
-                    this, "Choose incident to add to:", "Add to Incident",
-                    JOptionPane.PLAIN_MESSAGE, null, incArray, incArray[0]);
-            if (target == null) return;
-            if (selected == target) { showError("An incident cannot be added to itself."); return; }
-            if (selected instanceof TicketComponentIF) {
-                target.addChild((TicketComponentIF) selected);
+                    this, "Choose incident:", "Add to Incident",
+                    JOptionPane.PLAIN_MESSAGE, null, arr, arr[0]);
+            if (target == null || selected == target) return;
+            if (selected instanceof TicketComponentIF tc) {
+                target.addChild(tc);
                 IncidentRegistry.syncStorage();
-                JOptionPane.showMessageDialog(this, "Added to incident: " + target.getTitle());
+                JOptionPane.showMessageDialog(this, "Added to: " + target.getTitle());
             }
+
         } else if (choice == 1) {
             if (selected instanceof TicketComponentIF ticket) {
                 List<IncidentComposite> containing = IncidentRegistry.getContainingIncidents(ticket);
                 if (containing.isEmpty()) { showError("This ticket is not inside any incident."); return; }
-                IncidentComposite[] incArray = containing.toArray(new IncidentComposite[0]);
+                IncidentComposite[] arr = containing.toArray(new IncidentComposite[0]);
                 IncidentComposite from = (IncidentComposite) JOptionPane.showInputDialog(
-                        this, "Remove from which incident?", "Remove from Incident",
-                        JOptionPane.PLAIN_MESSAGE, null, incArray, incArray[0]);
+                        this, "Remove from which?", "Remove from Incident",
+                        JOptionPane.PLAIN_MESSAGE, null, arr, arr[0]);
                 if (from == null) return;
                 from.remove(ticket);
                 IncidentRegistry.syncStorage();
-                JOptionPane.showMessageDialog(this, "Ticket removed from: " + from.getTitle());
-            } else if (selected instanceof IncidentComposite) {
-                showError("Removing incidents from parent incidents is not yet supported.");
+                JOptionPane.showMessageDialog(this, "Removed from: " + from.getTitle());
             }
+
         } else if (choice == 2) {
             JTextField incTitle = new JTextField(16);
             JTextField incDesc  = new JTextField(24);
             JPanel form = new JPanel(new GridLayout(2, 2, 6, 6));
             form.add(new JLabel("Incident Title:")); form.add(incTitle);
             form.add(new JLabel("Description:"));    form.add(incDesc);
-            int r = JOptionPane.showConfirmDialog(this, form, "Create New Incident",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            if (r != JOptionPane.OK_OPTION || incTitle.getText().trim().isEmpty()) return;
+            if (JOptionPane.showConfirmDialog(this, form, "Create New Incident",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
+            if (incTitle.getText().trim().isEmpty()) return;
             IncidentRegistry.newIncident(incTitle.getText().trim(), incDesc.getText().trim());
         }
 
         refreshTree();
     }
 
-    // Flood Test
+    //Flood Test
     private void runFloodTest() {
         int count = 20;
         String input = JOptionPane.showInputDialog(this,
@@ -556,11 +634,11 @@ public class TicketGUI extends JFrame {
         long elapsed = System.currentTimeMillis() - startMs;
         refreshTree();
         JOptionPane.showMessageDialog(this,
-                "Flood Test Complete.\n" + count + " tickets created in " + elapsed + " ms.\n" +
-                "Scheduler queue depth: " + scheduler.getPendingCount());
+                "Flood Test Complete.\n" + count + " tickets created in " + elapsed + " ms.\n"
+                + "Scheduler queue depth: " + scheduler.getPendingCount());
     }
 
-    // Features
+    //middle
     private void updateDetailView(Object selected) {
         if (selected == null) {
             detailArea.setText("Select a ticket or incident to view details.");
@@ -587,20 +665,20 @@ public class TicketGUI extends JFrame {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Active features:\n");
-        sb.append(hasAudit ? "Audit Logging : ON\n"  : "Audit Logging OFF\n");
-        sb.append(hasBoost ? "Priority Boost : ON\n" : "Priority Boost : OFF\n");
-        sb.append(hasSLA   ? "SLA Monitoring : ON\n" : "SLA Monitoring : OFF\n");
+        sb.append(hasAudit ? "Audit Logging  : ON\n"  : "Audit Logging  : OFF\n");
+        sb.append(hasBoost ? "Priority Boost : ON\n"  : "Priority Boost : OFF\n");
+        sb.append(hasSLA   ? "SLA Monitoring : ON\n"  : "SLA Monitoring : OFF\n");
 
         if (hasSLA) {
             TicketComponentIF probe = t;
-            while (probe instanceof AbsTicketDecorator) {
+            while (probe instanceof AbsTicketDecorator dec) {
                 if (probe instanceof SLAMonitor sla) {
                     sb.append("\nSLA Status: ")
                       .append(sla.checkSLAStatus() ? "VALID" : "EXPIRED")
                       .append("\n");
                     break;
                 }
-                probe = ((AbsTicketDecorator) probe).decoratedComponent;
+                probe = dec.decoratedComponent;
             }
         }
 
@@ -614,19 +692,19 @@ public class TicketGUI extends JFrame {
         decoratorInfoArea.setCaretPosition(0);
     }
 
+    //features
     private boolean hasDecorator(TicketComponentIF t, Class<?> cls) {
         TicketComponentIF cur = t;
-        while (cur instanceof AbsTicketDecorator) {
+        while (cur instanceof AbsTicketDecorator dec) {
             if (cls.isInstance(cur)) return true;
-            cur = ((AbsTicketDecorator) cur).decoratedComponent;
+            cur = dec.decoratedComponent;
         }
         return false;
     }
 
     private TicketComponentIF removeDecorator(TicketComponentIF t, Class<?> cls) {
-        if (!(t instanceof AbsTicketDecorator dec)) return t; // base ticket, nothing to strip
+        if (!(t instanceof AbsTicketDecorator dec)) return t;
         TicketComponentIF newInner = removeDecorator(dec.decoratedComponent, cls);
-
         if (cls.isInstance(t)) {
             IncidentRegistry.replaceInAllIncidents(t, newInner);
             return newInner;
@@ -681,7 +759,7 @@ public class TicketGUI extends JFrame {
         updateToggleButtonLabels(ticket);
     }
 
-    // Helpers
+    //Helpers
     private Object getSelectedObject() {
         DefaultMutableTreeNode node =
             (DefaultMutableTreeNode) incidentTree.getLastSelectedPathComponent();
@@ -699,7 +777,7 @@ public class TicketGUI extends JFrame {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
     
-    // Main
+    //Main
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
