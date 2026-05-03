@@ -16,10 +16,10 @@ public class HardwareTicket extends Ticket {
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
 
     private String deviceSerialNumber = "N/A";
-    private String deviceMakeModel    = "N/A";
-    private String officeLocation     = "N/A";
-    private String failureType        = "N/A";
-    private boolean underWarranty     = false;
+    private String deviceMakeModel = "N/A";
+    private String officeLocation = "N/A";
+    private String failureType = "N/A";
+    private boolean underWarranty = false;
 
     // Used by builder (new tickets)
     public HardwareTicket(UUID id, String title, String description, int priority) {
@@ -33,17 +33,17 @@ public class HardwareTicket extends Ticket {
 
     // Setters
     public void setDeviceSerialNumber(String s)  { this.deviceSerialNumber = s == null ? "N/A" : s; }
-    public void setDeviceMakeModel(String s)     { this.deviceMakeModel    = s == null ? "N/A" : s; }
-    public void setOfficeLocation(String s)      { this.officeLocation     = s == null ? "N/A" : s; }
-    public void setFailureType(String s)         { this.failureType        = s == null ? "N/A" : s; }
-    public void setUnderWarranty(boolean w)      { this.underWarranty = w; }
+    public void setDeviceMakeModel(String s) { this.deviceMakeModel    = s == null ? "N/A" : s; }
+    public void setOfficeLocation(String s) { this.officeLocation     = s == null ? "N/A" : s; }
+    public void setFailureType(String s) { this.failureType        = s == null ? "N/A" : s; }
+    public void setUnderWarranty(boolean w) { this.underWarranty = w; }
 
     // Getters
     public String getDeviceSerialNumber() { return deviceSerialNumber; }
-    public String getDeviceMakeModel()    { return deviceMakeModel; }
-    public String getOfficeLocation()     { return officeLocation; }
-    public String getFailureType()        { return failureType; }
-    public boolean isUnderWarranty()      { return underWarranty; }
+    public String getDeviceMakeModel() { return deviceMakeModel; }
+    public String getOfficeLocation() { return officeLocation; }
+    public String getFailureType() { return failureType; }
+    public boolean isUnderWarranty() { return underWarranty; }
 
     @Override
     public String displayDetails() {

@@ -44,28 +44,28 @@ public class StorageManager {
                 if (core instanceof HardwareTicket hw) {
                     w.println(
                         "HW|" +
-                        t.getTicketID()            + "|" +
-                        escape(t.getTitle())       + "|" +
+                        t.getTicketID() + "|" +
+                        escape(t.getTitle()) + "|" +
                         escape(t.getDescription()) + "|" +
-                        t.getPriority()            + "|" +
-                        t.getCreatedAt()           + "|" +
-                        escape(dept)               + "|" +
-                        escape(t.getAssignee())    + "|" +
+                        t.getPriority() + "|" +
+                        t.getCreatedAt() + "|" +
+                        escape(dept) + "|" +
+                        escape(t.getAssignee()) + "|" +
                         escape(hw.getDeviceSerialNumber()) + "|" +
-                        escape(hw.getDeviceMakeModel())    + "|" +
-                        escape(hw.getOfficeLocation())     + "|" +
-                        escape(hw.getFailureType())        + "|" +
+                        escape(hw.getDeviceMakeModel()) + "|" +
+                        escape(hw.getOfficeLocation()) + "|" +
+                        escape(hw.getFailureType()) + "|" +
                         hw.isUnderWarranty()
                     );
                 } else {
                     w.println(
                         "SW|" +
-                        t.getTicketID()            + "|" +
-                        escape(t.getTitle())       + "|" +
+                        t.getTicketID() + "|" +
+                        escape(t.getTitle()) + "|" +
                         escape(t.getDescription()) + "|" +
-                        t.getPriority()            + "|" +
-                        t.getCreatedAt()           + "|" +
-                        escape(dept)               + "|" +
+                        t.getPriority() + "|" +
+                        t.getCreatedAt() + "|" +
+                        escape(dept) + "|" +
                         escape(t.getAssignee())
                     );
                 }
@@ -82,8 +82,7 @@ public class StorageManager {
                     }
                 }
             }
-            System.out.println("StorageManager: Saved " + tickets.size() +
-                               " tickets, " + incidents.size() + " incidents.");
+            System.out.println("StorageManager: Saved " + tickets.size() + " tickets, " + incidents.size() + " incidents.");
         } catch (IOException e) {
             System.err.println("Save Error: " + e.getMessage());
         }
@@ -100,7 +99,6 @@ public class StorageManager {
     public LoadResult loadAll() {
         List<TicketComponentIF> tickets   = new ArrayList<>();
         List<IncidentComposite> incidents = new ArrayList<>();
-        // UUID → ticket map for incident child look-up
         Map<UUID, TicketComponentIF> byId = new LinkedHashMap<>();
 
         File file = new File(FILE_NAME);
@@ -194,8 +192,7 @@ public class StorageManager {
                     }
                 }
             }
-            System.out.println("StorageManager: Loaded " + tickets.size() +
-                               " tickets, " + incidents.size() + " incidents.");
+            System.out.println("StorageManager: Loaded " + tickets.size() + " tickets, " + incidents.size() + " incidents.");
         } catch (IOException e) {
             System.err.println("Load Error: " + e.getMessage());
         }
@@ -203,7 +200,6 @@ public class StorageManager {
     }
 
     // Helpers
-
     private static String escape(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\").replace("|", "\\|").replace("\n", "\\n").replace("\r", "");

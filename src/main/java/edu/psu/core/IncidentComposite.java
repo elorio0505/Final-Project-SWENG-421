@@ -20,7 +20,7 @@ public class IncidentComposite implements TicketComponentIF {
 
     // Methods
     public void addChild(TicketComponentIF c) {
-        if (c == this) return;               // cannot add an incident to itself
+        if (c == this) return; // cannot add an incident to itself
         if (!children.contains(c)) {
             children.add(c);
         }

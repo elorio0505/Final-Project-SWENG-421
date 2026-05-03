@@ -2,7 +2,7 @@ package edu.psu.behavior;
 import edu.psu.core.TicketComponentIF;
 
 public class ResolvedState extends AbsTicketState {
-        @Override
+    @Override
     public void updateTicketStatus(TicketComponentIF context) {
         System.out.println("Ticket" + context.getTicketID() + "is resolved");
     }

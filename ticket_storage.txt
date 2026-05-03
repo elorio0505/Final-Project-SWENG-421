@@ -7,18 +7,15 @@ SW|207f6e7f-bbbb-4c40-b3ba-6f2f14af5554|Ticket idkwhatnumber|more stuff|4|2026-0
 SW|6a96347f-6a84-44a4-b18f-f044d3e21ce3|Flood-1|Stress test ticket #1|1|2026-05-03T10:01:52.915865400Z|Unassigned|Unassigned
 SW|a2bee3a9-6b2b-4eaa-8e33-37abbe2976a2|Flood-2|Stress test ticket #2|2|2026-05-03T10:01:52.986769400Z|Unassigned|Unassigned
 SW|1e313b3d-67d8-45c9-b79f-ee8d2bcd33cc|Flood-3|Stress test ticket #3|3|2026-05-03T10:01:52.987766200Z|Unassigned|Unassigned
-SW|406d155e-67cf-4dd1-ad67-971ed919c48d|Flood-4|Stress test ticket #4|4|2026-05-03T10:01:52.989763100Z|Unassigned|Unassigned
+SW|406d155e-67cf-4dd1-ad67-971ed919c48d|Flood-4|Stress test ticket #4|4|2026-05-03T10:01:52.989763100Z|d|d
 SW|e793d83c-38a2-496f-9c37-07ed3ad0bdef|Flood-5|Stress test ticket #5|5|2026-05-03T10:01:52.991808200Z|Unassigned|Unassigned
 HW|3c6ed836-1d24-482a-8e3c-26accb93a082|Workstation Will Not Boot After Power Surge|A workstation in the finance department failed to boot following a power surge yesterday evening. The machine powers on but does not POST — no display output and the fans spin at full speed continuously. Suspected PSU or motherboard damage.|8|2026-05-03T10:02:27.249472700Z|Unassigned|Unassigned|N/A|N/A|N/A|N/A|false
-SW|f6c96f87-3a9d-45b4-8d93-8d2ce6e837d6|Password Reset Emails Not Being Delivered|Users who request a password reset through the HR portal are not receiving the reset email. The issue has been ongoing since Friday afternoon. Checked spam folders — emails are not arriving at all. Affects all users in the system, roughly 200 accounts. SMTP logs show messages leaving the server successfully, so the issue may be on the receiving mail server or a relay filter.|7|2026-05-03T10:02:44.728672800Z|place|person
-SW|a98a3e9d-c060-4053-b6ed-0194394b9d46|sdad|dsasdasdsadsad|2|2026-05-03T10:07:02.788782600Z|Unassigned|Unassigned
 
 [INCIDENTS]
 INCIDENT|the first incident|what the title says
 CHILD|272a49b5-e6ba-49a1-a4ba-94acb50ccd55
 CHILD|eeca3c01-17ee-45aa-9ff9-3c5cda4a2bd7
+CHILD|406d155e-67cf-4dd1-ad67-971ed919c48d
 INCIDENT|a second incident|reasons
 CHILD|207f6e7f-bbbb-4c40-b3ba-6f2f14af5554
-CHILD|a98a3e9d-c060-4053-b6ed-0194394b9d46
-CHILD|f6c96f87-3a9d-45b4-8d93-8d2ce6e837d6
 CHILD|a573e1f8-1da5-4f1f-af0d-0b989d38c83b

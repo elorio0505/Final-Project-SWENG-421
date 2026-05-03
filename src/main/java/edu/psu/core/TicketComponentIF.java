@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TicketComponentIF {
-    // Control methods
+    //Methods
     String displayDetails();
     void processEvent(int event);
 

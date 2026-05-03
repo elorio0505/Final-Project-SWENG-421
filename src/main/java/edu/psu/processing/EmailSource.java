@@ -66,10 +66,10 @@ public class EmailSource extends AbsTicketSource implements ParsingStrategyIF {
     }
     
     static void applyToBuilder(Map<String, String> fields, AbsTicketBuilder builder, String sourceName) {
-        String title       = require(fields, "title",       sourceName);
+        String title = require(fields, "title",       sourceName);
         String description = require(fields, "description", sourceName);
-        int    priority    = requireInt(fields, "priority", sourceName);
-        String type        = fields.getOrDefault("type", "Software").trim();
+        int priority = requireInt(fields, "priority", sourceName);
+        String type = fields.getOrDefault("type", "Software").trim();
 
         builder.setBasics(title, description);
         builder.setMetaData(sourceName, priority);

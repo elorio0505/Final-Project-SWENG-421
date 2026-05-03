@@ -33,14 +33,14 @@ public class Ticket implements TicketComponentIF {
 
     //for StorageManager on load
     public Ticket(UUID id, String title, String description, int priority, Instant createdAt) {
-        this.ticketID    = id;
-        this.title       = title;
+        this.ticketID = id;
+        this.title = title;
         this.description = description;
-        this.priority    = priority;
-        this.createdAt   = createdAt;
-        this.state       = AbsTicketState.start();
-        this.assignee    = "Unassigned";
-        this.department  = "Unassigned";
+        this.priority = priority;
+        this.createdAt = createdAt;
+        this.state = AbsTicketState.start();
+        this.assignee = "Unassigned";
+        this.department = "Unassigned";
     }
 
     // Methods
@@ -80,19 +80,19 @@ public class Ticket implements TicketComponentIF {
 
     // Setters
     public void setState(AbsTicketState state) { this.state = state; }
-    public void setPriority(int priority)       { this.priority = priority; }
-    public void setAssignee(String assignee)    { this.assignee = assignee; }
-    public void setDepartment(String dept)      { this.department = dept; }
+    public void setPriority(int priority) { this.priority = priority; }
+    public void setAssignee(String assignee) { this.assignee = assignee; }
+    public void setDepartment(String dept) { this.department = dept; }
 
     // Getters
-    public int getPriority()        { return priority; }
-    public Instant getCreatedAt()   { return createdAt; }
-    public AbsTicketState getState(){ return state; }
-    public UUID getTicketID()       { return ticketID; }
-    public String getAssignee()     { return assignee; }
-    public String getDepartment()   { return department; }
-    public String getTitle()        { return title; }
-    public String getDescription()  { return description; }
+    public int getPriority() { return priority; }
+    public Instant getCreatedAt() { return createdAt; }
+    public AbsTicketState getState() { return state; }
+    public UUID getTicketID() { return ticketID; }
+    public String getAssignee() { return assignee; }
+    public String getDepartment() { return department; }
+    public String getTitle() { return title; }
+    public String getDescription() { return description; }
 
     @Override
     public String toString() {

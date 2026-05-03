@@ -47,11 +47,11 @@ public class IncidentRegistry {
      */
     public static List<TicketComponentIF> getStandaloneTickets() {
         Set<TicketComponentIF> nested = incidentList.stream()
-                .flatMap(i -> i.getChildren().stream())
-                .collect(Collectors.toSet());
+            .flatMap(i -> i.getChildren().stream())
+            .collect(Collectors.toSet());
         return allTickets.stream()
-                .filter(t -> !nested.contains(t))
-                .collect(Collectors.toList());
+            .filter(t -> !nested.contains(t))
+            .collect(Collectors.toList());
     }
     
     /**

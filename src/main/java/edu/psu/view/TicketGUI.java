@@ -9,6 +9,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -59,6 +61,13 @@ public class TicketGUI extends JFrame {
     private JButton requestBtn;
     private JButton manageIncidentBtn;
 
+    // scheduler controls
+    private JButton        schedulerToggleBtn;  // Start / Stop
+    private JButton        pauseResumeBtn;      // Pause / Resume
+    private JSpinner       rateSpinner;
+    private JLabel         schedulerStatusLabel;
+    private JLabel         queueLabel;
+
     //right
     private JCheckBox auditCheck;
     private JCheckBox slaCheck;
@@ -74,9 +83,22 @@ public class TicketGUI extends JFrame {
     public TicketGUI() {
         IncidentRegistry.syncStorage();
 
+        scheduler.addDispatchListener((ticket, stats) -> SwingUtilities.invokeLater(() -> {
+            refreshTree();
+            selectTicketInTree(ticket);
+            updateSchedulerUI(stats);
+        }));
+
         setTitle("Incident Management System");
         setSize(1280, 800);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent e) {
+                scheduler.stop();
+                dispose();
+                System.exit(0);
+            }
+        });
         setLayout(new BorderLayout(4, 4));
 
         add(buildTopPanel(),    BorderLayout.NORTH);
@@ -86,13 +108,13 @@ public class TicketGUI extends JFrame {
 
         refreshTree();
         updateButtonStates(null);
+        updateSchedulerUI(scheduler.getStats());
         setLocationRelativeTo(null);
     }
 
     private JPanel buildTopPanel() {
         JPanel outer = new JPanel(new BorderLayout(4, 4));
         outer.setBorder(BorderFactory.createTitledBorder("Ticket Creation"));
-
         JPanel commonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
 
         typeCombo     = new JComboBox<>(new String[]{"Software", "Hardware"});
@@ -109,7 +131,6 @@ public class TicketGUI extends JFrame {
         importFileBtn.addActionListener(e -> handleImportFromFile());
         floodBtn     .addActionListener(e -> runFloodTest());
 
-        // Show/hide hardware fields
         typeCombo.addActionListener(e -> {
             boolean hw = "Hardware".equals(typeCombo.getSelectedItem());
             hwFieldsPanel.setVisible(hw);
@@ -130,6 +151,39 @@ public class TicketGUI extends JFrame {
         commonRow.add(new JSeparator(SwingConstants.VERTICAL));
         commonRow.add(floodBtn);
 
+        // scheduler
+        JPanel schedulerRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        schedulerRow.setBorder(BorderFactory.createTitledBorder("Scheduler"));
+
+        schedulerToggleBtn  = new JButton("Start Scheduler");
+        pauseResumeBtn      = new JButton("Pause");
+        pauseResumeBtn.setEnabled(false);
+
+        SpinnerNumberModel rateModel = new SpinnerNumberModel(1.0, 0.1, 100.0, 0.5);
+        rateSpinner = new JSpinner(rateModel);
+        rateSpinner.setPreferredSize(new Dimension(65, rateSpinner.getPreferredSize().height));
+        ((JSpinner.DefaultEditor) rateSpinner.getEditor()).getTextField().setColumns(4);
+
+        schedulerStatusLabel = new JLabel("Stopped  |  Dispatched: 0  |  Throughput: 0.00/s");
+        queueLabel           = new JLabel("Queue: 0 pending");
+        queueLabel.setFont(queueLabel.getFont().deriveFont(Font.BOLD));
+
+        schedulerToggleBtn.addActionListener(e -> handleSchedulerToggle());
+        pauseResumeBtn    .addActionListener(e -> handlePauseResume());
+        rateSpinner.addChangeListener(e -> {
+            double rate = ((Number) rateSpinner.getValue()).doubleValue();
+            scheduler.setRate(rate);
+        });
+
+        schedulerRow.add(schedulerToggleBtn);
+        schedulerRow.add(pauseResumeBtn);
+        schedulerRow.add(new JLabel("Rate (tickets/sec):"));
+        schedulerRow.add(rateSpinner);
+        schedulerRow.add(new JSeparator(SwingConstants.VERTICAL));
+        schedulerRow.add(queueLabel);
+        schedulerRow.add(new JSeparator(SwingConstants.VERTICAL));
+        schedulerRow.add(schedulerStatusLabel);
+
         // hardware fields
         hwFieldsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         hwFieldsPanel.setBorder(BorderFactory.createTitledBorder("Hardware Details"));
@@ -149,10 +203,14 @@ public class TicketGUI extends JFrame {
         hwFieldsPanel.add(new JLabel("Failure Type:"));
         hwFieldsPanel.add(hwFailureTypeField);
         hwFieldsPanel.add(hwWarrantyCheck);
-        hwFieldsPanel.setVisible(false); // hidden by default (Software selected)
+        hwFieldsPanel.setVisible(false);
 
-        outer.add(commonRow,     BorderLayout.NORTH);
-        outer.add(hwFieldsPanel, BorderLayout.SOUTH);
+        JPanel northRows = new JPanel(new BorderLayout(0, 2));
+        northRows.add(commonRow,    BorderLayout.NORTH);
+        northRows.add(schedulerRow, BorderLayout.SOUTH);
+
+        outer.add(northRows,      BorderLayout.NORTH);
+        outer.add(hwFieldsPanel,  BorderLayout.SOUTH);
         return outer;
     }
 
@@ -337,20 +395,19 @@ public class TicketGUI extends JFrame {
 
         TicketComponentIF ticket = buildTicket(priority);
         applyCreationDecorators(ticket);
+        scheduler.submit(ticket);
+        updateSchedulerUI(scheduler.getStats());
 
         titleField.setText("");
         descField.setText("");
         priorityField.setText("");
         clearHardwareFields();
-
-        refreshTree();
-        selectTicketInTree(ticket);
     }
 
     //file import, email/webform (.eml/.html)
     private void handleImportFromFile() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Import Ticket — select a .eml or .html file");
+        chooser.setDialogTitle("Import Ticket: select a .eml or .html file");
         chooser.setFileFilter(
             new FileNameExtensionFilter("Ticket source files (*.eml, *.html)", "eml", "html", "htm"));
 
@@ -385,22 +442,26 @@ public class TicketGUI extends JFrame {
 
             TicketComponentIF ticket = builder.getProduct();
             applyCreationDecorators(ticket);
+            scheduler.submit(ticket);
+            updateSchedulerUI(scheduler.getStats());
 
-            refreshTree();
-            selectTicketInTree(ticket);
+            String schedulerHint = scheduler.isRunning()
+                ? "The scheduler will dispatch it automatically."
+                : "Start the scheduler to dispatch it.";
 
             JOptionPane.showMessageDialog(this,
-                "Ticket imported successfully from: " + selectedFile.getName()
+                "Ticket queued successfully from: " + selectedFile.getName()
                 + "\n\nType:     " + (isHardware ? "Hardware" : "Software")
                 + "\nTitle:    " + ticket.getTitle()
                 + "\nPriority: " + ticket.getPriority()
-                + "\nSource:   " + sourceLabel,
-                "Import Successful", JOptionPane.INFORMATION_MESSAGE);
+                + "\nSource:   " + sourceLabel
+                + "\n\n" + schedulerHint,
+                "Ticket Queued", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (IOException ex) {
             showError("Could not read the file:\n" + ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            showError("Parsing failed — the file may be missing required fields.\n\n"
+            showError("Parsing failed: the file may be missing required fields.\n\n"
                 + ex.getMessage()
                 + "\n\nRequired fields:  type, title, description, priority"
                 + "\nHardware also needs:  serial, make_model, location, failure, warranty");
@@ -530,14 +591,14 @@ public class TicketGUI extends JFrame {
     private void handleSetActive()   { applyEvent(AbsTicketState.ACTIVATE_EVT, "Set to Active"); }
     private void handleResolve()     { applyEvent(AbsTicketState.RESOLVE_EVT,  "Marked as Resolved"); }
     private void handleClose()       { applyEvent(AbsTicketState.CLOSE_EVT,    "Ticket Closed"); }
-    private void handleRequestInfo() { applyEvent(AbsTicketState.PENDING_EVT,  "Info requested — ticket set to Pending"); }
+    private void handleRequestInfo() { applyEvent(AbsTicketState.PENDING_EVT,  "Info requested: ticket set to Pending"); }
 
     private void handleEscalate() {
         TicketComponentIF ticket = getSelectedTicket();
         if (ticket == null) return;
         int newPriority = ticket.getPriority() + 1;
         ticket.setPriority(newPriority);
-        ticket.addLog("Escalated — priority increased to " + newPriority);
+        ticket.addLog("Escalated: priority increased to " + newPriority);
         ticket.processEvent(AbsTicketState.ESCALATE_EVT);
         refreshAndReselect(ticket);
     }
@@ -614,6 +675,52 @@ public class TicketGUI extends JFrame {
         refreshTree();
     }
 
+    // Scheduler controls
+
+    private void handleSchedulerToggle() {
+        if (scheduler.isRunning()) {
+            scheduler.stop();
+            schedulerToggleBtn.setText("Start Scheduler");
+            pauseResumeBtn.setEnabled(false);
+            pauseResumeBtn.setText("Pause");
+        } else {
+            double rate = ((Number) rateSpinner.getValue()).doubleValue();
+            scheduler.setRate(rate);
+            scheduler.start();
+            schedulerToggleBtn.setText("Stop Scheduler");
+            pauseResumeBtn.setEnabled(true);
+        }
+        updateSchedulerUI(scheduler.getStats());
+    }
+
+    private void handlePauseResume() {
+        if (scheduler.isPaused()) {
+            scheduler.resume();
+            pauseResumeBtn.setText("Pause");
+        } else {
+            scheduler.pause();
+            pauseResumeBtn.setText("Resume");
+        }
+        updateSchedulerUI(scheduler.getStats());
+    }
+
+    private void updateSchedulerUI(TicketScheduler.SchedulerStats stats) {
+        // Queue label
+        int n = stats.pending;
+        queueLabel.setText("Queue: " + n + " pending");
+        queueLabel.setForeground(n > 0 ? new Color(180, 80, 0) : new Color(0, 120, 0));
+
+        // Status label
+        String state;
+        if (!scheduler.isRunning())   state = "Stopped";
+        else if (scheduler.isPaused()) state = "Paused";
+        else                           state = "Running";
+
+        schedulerStatusLabel.setText(String.format(
+            "%s  |  Dispatched: %d  |  Throughput: %.2f/s",
+            state, stats.totalDispatched, stats.throughput()));
+    }
+
     //Flood Test
     private void runFloodTest() {
         int count = 20;
@@ -628,14 +735,25 @@ public class TicketGUI extends JFrame {
             swBuilder.reset();
             swBuilder.setBasics("Flood-" + (i + 1), "Stress test ticket #" + (i + 1));
             swBuilder.setMetaData("FloodTool", (i % 10) + 1);
-            TicketComponentIF t = swBuilder.getProduct();
-            scheduler.submit(t);
+            scheduler.submit(swBuilder.getProduct());
         }
-        long elapsed = System.currentTimeMillis() - startMs;
-        refreshTree();
+        long submitMs = System.currentTimeMillis() - startMs;
+
+        TicketScheduler.SchedulerStats stats = scheduler.getStats();
+        updateSchedulerUI(stats);
+
+        double rate = scheduler.getRate();
+        double drainSec = stats.pending / rate;
+        String drainMsg = scheduler.isRunning()
+            ? String.format("At %.1f ticket/s, queue will drain in ~%.1f seconds.", rate, drainSec)
+            : "Start the scheduler to begin dispatching.";
+
         JOptionPane.showMessageDialog(this,
-                "Flood Test Complete.\n" + count + " tickets created in " + elapsed + " ms.\n"
-                + "Scheduler queue depth: " + scheduler.getPendingCount());
+            String.format("Flood Test Complete.\n%d tickets queued in %d ms.\n\n"
+                + "Queue depth : %d pending\n"
+                + "Total submitted : %d\n\n%s",
+                count, submitMs, stats.pending, stats.totalSubmitted, drainMsg),
+            "Flood Test Results", JOptionPane.INFORMATION_MESSAGE);
     }
 
     //middle
