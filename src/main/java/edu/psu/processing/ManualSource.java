@@ -2,8 +2,11 @@ package edu.psu.processing;
 
 import java.util.Map;
 
-public class ManualSource implements ParsingStrategyIF{
-    public ManualSource() {}
+public class ManualSource extends AbsTicketSource implements ParsingStrategyIF {
+    public ManualSource() {
+        super(null); 
+        this.setStrategy(this);
+    }
 
     @Override
     public void parseRaw(Object data, AbsTicketBuilder builder) {

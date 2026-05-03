@@ -20,7 +20,7 @@ public abstract class AbsTicketState {
 
     public abstract void updateTicketStatus(TicketComponentIF context);
     
-    boolean validateTransition(int event) {
+    public boolean validateTransition(int event) {
         return nextState(event) != null;
     }
     

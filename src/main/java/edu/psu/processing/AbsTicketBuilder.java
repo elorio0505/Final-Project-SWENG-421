@@ -18,6 +18,10 @@ public abstract class AbsTicketBuilder {
         this.description = desc;
     }
 
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+    
     public void setMetaData(String source, int priority) {
         this.source = source;
         this.priority = priority;

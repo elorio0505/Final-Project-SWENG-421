@@ -1,0 +1,13 @@
+[TICKETS]
+SW|272a49b5-e6ba-49a1-a4ba-94acb50ccd55|Ticket 1|This si the first test for software type|2|2026-05-03T02:03:13.942427900Z|Unassigned|Unassigned
+HW|eeca3c01-17ee-45aa-9ff9-3c5cda4a2bd7|HW testing|test for hardware type 1, enabled SLA monitor on creation|4|2026-05-03T02:04:26.249428800Z|Unassigned|Unassigned|N/A|N/A|N/A|N/A|false
+SW|a573e1f8-1da5-4f1f-af0d-0b989d38c83b|Ticket 2|stuff, high priority|12|2026-05-03T02:05:03.174088600Z|Unassigned|the dude in office #4
+SW|dee04b01-17f5-4ac5-959f-c2f9db1bf299|Ticket 2|stuff 2|3|2026-05-03T02:07:54.504080600Z|Unassigned|Unassigned
+SW|207f6e7f-bbbb-4c40-b3ba-6f2f14af5554|Ticket idkwhatnumber|more stuff|4|2026-05-03T02:08:10.385608600Z|a place|a dude
+
+[INCIDENTS]
+INCIDENT|the first incident|what the title says
+CHILD|272a49b5-e6ba-49a1-a4ba-94acb50ccd55
+CHILD|eeca3c01-17ee-45aa-9ff9-3c5cda4a2bd7
+INCIDENT|a second incident|reasons
+CHILD|207f6e7f-bbbb-4c40-b3ba-6f2f14af5554

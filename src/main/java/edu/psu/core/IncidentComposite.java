@@ -1,6 +1,6 @@
 package edu.psu.core;
 
-import edu.psu.behavior.TicketStateIF;
+import edu.psu.behavior.AbsTicketState;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,7 +19,8 @@ public class IncidentComposite implements TicketComponentIF {
     }
 
     // Methods
-    public void add(TicketComponentIF c) {
+    public void addChild(TicketComponentIF c) {
+        if (c == this) return;               // cannot add an incident to itself
         if (!children.contains(c)) {
             children.add(c);
         }
@@ -63,12 +64,12 @@ public class IncidentComposite implements TicketComponentIF {
         }
     }
 
-    // Getters -- Many of these return invalid indicators because it's hard to get these values from an incident
+    // Getters
     public int getPriority() {
         return -1;
     }
     public Instant getCreatedAt() {return null;}
-    public TicketStateIF getState() {return null;}
+    public AbsTicketState getState() {return null;}
     public UUID getTicketID() {return null;}
     public String getAssignee() {return "";}
     public List<TicketComponentIF> getChildren() {
@@ -108,10 +109,14 @@ public class IncidentComposite implements TicketComponentIF {
      * @param state New state
      */
     @Override
-    public void setState(TicketStateIF state) {
+    public void setState(AbsTicketState state) {
         for (TicketComponentIF c : children) {
             c.setState(state);
         }
 
+    }
+    
+    public String toString() {
+    return this.getTitle();
     }
 }

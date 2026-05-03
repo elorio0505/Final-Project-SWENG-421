@@ -1,7 +1,7 @@
 package edu.psu.processing;
 
 import edu.psu.core.*;
-
+import java.util.UUID;
 import java.time.Instant;
 
 public class SoftwareTicketBuilder extends AbsTicketBuilder {
@@ -23,5 +23,13 @@ public class SoftwareTicketBuilder extends AbsTicketBuilder {
     }
 
     @Override
-    public TicketComponentIF getProduct() {return null;}
+    public TicketComponentIF getProduct() {
+        UUID id = UUID.randomUUID();
+        if (this.createdAt == null) {
+            this.createdAt = Instant.now();
+        }
+        TicketComponentIF t = new Ticket(id, title, description, priority, createdAt);
+        IncidentRegistry.registerTicket(t); 
+        return t;
+    }
 }

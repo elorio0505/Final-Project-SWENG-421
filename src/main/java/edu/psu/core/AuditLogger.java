@@ -1,6 +1,6 @@
 package edu.psu.core;
 
-import edu.psu.behavior.TicketStateIF;
+import edu.psu.behavior.AbsTicketState;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class AuditLogger extends AbsTicketDecorator {
     }
 
     @Override
-    public void setState(TicketStateIF state) {
+    public void setState(AbsTicketState state) {
         logChange("State changed to " + state);
         super.setState(state);
     }

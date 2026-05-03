@@ -2,8 +2,12 @@ package edu.psu.processing;
 
 import java.util.Map;
 
-public class WebFormSource implements ParsingStrategyIF {
-    public WebFormSource() {}
+public class WebFormSource extends AbsTicketSource implements ParsingStrategyIF {
+
+    public WebFormSource() {
+        super(null); 
+        this.setStrategy(this);
+    }
 
     @Override
     public void parseRaw(Object data, AbsTicketBuilder builder) {

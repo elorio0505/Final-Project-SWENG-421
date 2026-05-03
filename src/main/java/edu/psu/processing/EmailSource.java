@@ -2,9 +2,12 @@ package edu.psu.processing;
 
 import java.util.Map;
 
-public class EmailSource implements ParsingStrategyIF {
+public class EmailSource extends AbsTicketSource implements ParsingStrategyIF {
 
-    public EmailSource() {}
+    public EmailSource() {
+        super(null);
+        this.setStrategy(this);
+    }
 
     @Override
     public void parseRaw(Object data, AbsTicketBuilder builder) {
