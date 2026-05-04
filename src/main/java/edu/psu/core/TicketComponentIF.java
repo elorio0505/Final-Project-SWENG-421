@@ -24,7 +24,7 @@ public interface TicketComponentIF {
     void setPriority(int priority);
     void setState(AbsTicketState state);
 
-    // Activity log (default no-op for composites/decorators that delegate down)
+    // Activity log
     default void addLog(String note) {}
     default List<String> getActivityLog() { return java.util.Collections.emptyList(); }
 }

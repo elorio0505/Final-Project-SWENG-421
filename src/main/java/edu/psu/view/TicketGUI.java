@@ -19,10 +19,10 @@ import java.util.List;
 /**
  * Main GUI for the Incident Management System.
  * Layout:
- *   Top    : ticket creation (manual) + Import from File + flood test
- *   Left   : incident/ticket hierarchy tree
- *   Center : ticket detail view + action buttons
- *   Right  : feature decorator controls + feature info
+ *  Top : ticket creation (manual) + Import from File + flood test
+ *  Left : incident/ticket hierarchy tree
+ *  Center : ticket detail view + action buttons
+ *  Right : feature decorator controls + feature info
  */
 public class TicketGUI extends JFrame {
 
@@ -374,7 +374,6 @@ public class TicketGUI extends JFrame {
     }
 
     // Action handlers
-    
     // manual
     private void handleManualCreation() {
         String title = titleField.getText().trim();

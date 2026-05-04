@@ -23,7 +23,6 @@ public class IncidentRegistry {
             incidentList.addAll(result.incidents);
             loaded = true;
         }
-        // Save both tickets and incidents every time
         storage.saveAll(allTickets, incidentList);
     }
 

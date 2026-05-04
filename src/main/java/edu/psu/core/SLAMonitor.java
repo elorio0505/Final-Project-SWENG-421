@@ -1,7 +1,5 @@
 package edu.psu.core;
 
-// TODO: give a time to monitor when it's created, when checkSLAStatus() is called, return true if the current time is before t
-
 import java.time.Duration;
 import java.time.Instant;
 

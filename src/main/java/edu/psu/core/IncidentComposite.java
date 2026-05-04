@@ -43,7 +43,7 @@ public class IncidentComposite implements TicketComponentIF {
     }
 
     /**
-     * Returns human-readable version of incident properties
+     * Returns readable version of incident properties
      * @return String of formatted information about the incident
      */
     @Override

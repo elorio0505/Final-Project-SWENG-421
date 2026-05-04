@@ -1,10 +1,15 @@
 [TICKETS]
-SW|0cb12b7f-41da-4b67-971e-094a90f66ac9|te|te|2|2026-05-04T00:57:46.464654900Z|dd|dd|ResolvedState
-SW|0ded8bec-83b7-45ba-8780-2ddb0fcb7c6a|ted|ted|4|2026-05-04T00:57:58.083015500Z|cc|cc|AssignedState
-HW|6a1ac378-aa33-4071-b874-0c5114aef08b|243dasdas|dsadasd|4|2026-05-04T00:58:08.273324400Z|Unassigned|Unassigned|||||false|NewState
+SW|ee5f1b84-c645-48fe-b646-be616431a4f3|VPN authentication failing for remote users|Remote employees are unable to authenticate through the VPN. Auth service returning timeout errors since 8AM.|8|2026-05-04T01:39:45.555407400Z|IT Department|jSmith|PendingState
+HW|40abec93-dfd0-411f-a34f-fce35bb293ec|Network switch unresponsive on floor 3|The managed switch serving floor 3 is not responding to ping or management console. All floor 3 users offline.|11|2026-05-04T01:39:24.766322300Z|IT Department|jdoe|SN-30092|Cisco Catalyst 2960|Floor 3 - Network Closet|Unresponsive|true|ActiveState
+SW|5d3ed6d5-8745-4a32-a8b1-e15c07e48a1e|Application throwing 500 errors|Web app returning Http 500 on all requests|9|2026-05-04T01:42:55.338847100Z|Infrastructure|john doe|AssignedState
+HW|f328b86a-d514-4747-bad0-e26baa1e2bf3|Office printer offline|Newtork printer showing offline|4|2026-05-04T01:43:50.801099800Z|IT Department|jane doe|SN-1|HP|room 203|network conncetivity|true|ActiveState
+HW|4fc0e65e-e04a-4097-b3f2-a26fb13da123|Server room UPS battery alarm|UPS unit in server room B is alarming continuously. Possible battery failure or overload condition.|9|2026-05-04T01:44:23.921231400Z|Unassigned|Unassigned|SN-20041|APC Smart-UPS 3000|Server Room B|Battery failure|false|NewState
+SW|e4e09e44-2677-4ead-aa30-149ddc3f86b8|Employee login portal returning blank page|The internal employee login portal displays a blank page after submitting credentials. Affects all browsers.|7|2026-05-04T01:46:05.387495100Z|Unassigned|Unassigned|NewState
 
 [INCIDENTS]
-INCIDENT|dd|dd
-CHILD|0cb12b7f-41da-4b67-971e-094a90f66ac9
-INCIDENT|ss|ss
-CHILD|6a1ac378-aa33-4071-b874-0c5114aef08b
+INCIDENT|internet issues|problems
+CHILD|ee5f1b84-c645-48fe-b646-be616431a4f3
+INCIDENT|network issues|other problems
+CHILD|40abec93-dfd0-411f-a34f-fce35bb293ec
+CHILD|f328b86a-d514-4747-bad0-e26baa1e2bf3
+CHILD|5d3ed6d5-8745-4a32-a8b1-e15c07e48a1e

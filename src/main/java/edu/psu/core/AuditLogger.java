@@ -38,8 +38,6 @@ public class AuditLogger extends AbsTicketDecorator {
         return Instant.now().toString();
     }
 
-    // When you want to attach a log to a method, override that method and call logChange(message) before supering the method
-
     @Override
     public void processEvent(int event) {
         logChange("Event " + event + " executed");
