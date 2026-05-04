@@ -33,4 +33,7 @@ public abstract class AbsTicketDecorator implements TicketComponentIF {
     public String getAssignee() { return decoratedComponent.getAssignee(); }
     public void addLog(String note) { decoratedComponent.addLog(note); }
     public List<String> getActivityLog() { return decoratedComponent.getActivityLog(); }
+
+    @Override
+    public String toString() { return decoratedComponent.toString(); }
 }

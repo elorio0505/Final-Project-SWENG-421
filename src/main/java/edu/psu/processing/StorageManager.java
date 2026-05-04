@@ -1,5 +1,6 @@
 package edu.psu.processing;
 
+import edu.psu.behavior.AbsTicketState;
 import edu.psu.core.HardwareTicket;
 import edu.psu.core.Ticket;
 import edu.psu.core.TicketComponentIF;
@@ -12,8 +13,8 @@ import java.util.*;
  * Persists the full system state to ticket_storage.txt.
  * File format:
  *   TICKETS
- *   SW|UUID|Title|Description|Priority|CreatedAt|Department|Assignee
- *   HW|UUID|Title|Description|Priority|CreatedAt|Department|Assignee|Serial|MakeModel|Location|FailureType|Warranty
+ *   SW|UUID|Title|Description|Priority|CreatedAt|Department|Assignee|State
+ *   HW|UUID|Title|Description|Priority|CreatedAt|Department|Assignee|Serial|MakeModel|Location|FailureType|Warranty|State
  *
  *   [INCIDENTS]
  *   INCIDENT|IncidentTitle|IncidentDescription
@@ -55,7 +56,8 @@ public class StorageManager {
                         escape(hw.getDeviceMakeModel()) + "|" +
                         escape(hw.getOfficeLocation()) + "|" +
                         escape(hw.getFailureType()) + "|" +
-                        hw.isUnderWarranty()
+                        hw.isUnderWarranty() + "|" +
+                        (t.getState() != null ? t.getState().getClass().getSimpleName() : "NewState")
                     );
                 } else {
                     w.println(
@@ -66,7 +68,8 @@ public class StorageManager {
                         t.getPriority() + "|" +
                         t.getCreatedAt() + "|" +
                         escape(dept) + "|" +
-                        escape(t.getAssignee())
+                        escape(t.getAssignee()) + "|" +
+                        (t.getState() != null ? t.getState().getClass().getSimpleName() : "NewState")
                     );
                 }
             }
@@ -147,6 +150,9 @@ public class StorageManager {
                                     hw.setFailureType(unescape(d[10]));
                                     hw.setUnderWarranty(Boolean.parseBoolean(d[11]));
                                 }
+                                if (d.length >= 13) {
+                                    hw.setState(restoreState(d[12]));
+                                }
                                 tickets.add(hw);
                                 byId.put(hw.getTicketID(), hw);
                             } else {
@@ -160,6 +166,9 @@ public class StorageManager {
                                 if (d.length >= 7) {
                                     t.setDepartment(unescape(d[5]));
                                     t.setAssignee(unescape(d[6]));
+                                }
+                                if (d.length >= 8) {
+                                    t.setState(restoreState(d[7]));
                                 }
                                 tickets.add(t);
                                 byId.put(t.getTicketID(), t);
@@ -214,6 +223,19 @@ public class StorageManager {
         TicketComponentIF core = unwrapCore(t);
         if (core instanceof Ticket) return ((Ticket) core).getDepartment();
         return "Unassigned";
+    }
+
+    private static AbsTicketState restoreState(String stateName) {
+        if (stateName == null) return AbsTicketState.start();
+        switch (stateName.trim()) {
+            case "AssignedState": return AbsTicketState.fromName("AssignedState");
+            case "ActiveState": return AbsTicketState.fromName("ActiveState");
+            case "PendingState": return AbsTicketState.fromName("PendingState");
+            case "EscalatedState": return AbsTicketState.fromName("EscalatedState");
+            case "ResolvedState": return AbsTicketState.fromName("ResolvedState");
+            case "ClosedState": return AbsTicketState.fromName("ClosedState");
+            default: return AbsTicketState.start();
+        }
     }
 
     private static TicketComponentIF unwrapCore(TicketComponentIF t) {

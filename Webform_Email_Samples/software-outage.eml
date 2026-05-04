@@ -1,0 +1,4 @@
+type: Software
+title: VPN authentication failing for remote users
+description: Remote employees are unable to authenticate through the VPN. Auth service returning timeout errors since 8AM.
+priority: 8

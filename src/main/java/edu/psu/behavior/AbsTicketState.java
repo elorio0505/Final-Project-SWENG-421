@@ -33,6 +33,19 @@ public abstract class AbsTicketState {
     public static AbsTicketState start() {
         return newState;
     }
+
+    public static AbsTicketState fromName(String name) {
+        if (name == null) return newState;
+        switch (name.trim()) {
+            case "AssignedState":  return assignedState;
+            case "ActiveState":    return activeState;
+            case "PendingState":   return pendingState;
+            case "EscalatedState": return escalatedState;
+            case "ResolvedState":  return resolvedState;
+            case "ClosedState":    return closedState;
+            default:               return newState;
+        }
+    }
     public void processEvent(TicketComponentIF context, int event) {
         if (validateTransition(event)) {
             AbsTicketState next = nextState(event);

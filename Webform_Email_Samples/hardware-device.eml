@@ -1,0 +1,9 @@
+type: Hardware
+title: Server room UPS battery alarm
+description: UPS unit in server room B is alarming continuously. Possible battery failure or overload condition.
+priority: 9
+serial: SN-20041
+make_model: APC Smart-UPS 3000
+location: Server Room B
+failure: Battery failure
+warranty: false
